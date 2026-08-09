@@ -14,27 +14,37 @@
 
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;height:100%;background:#070A11;overflow:hidden}
-  body{display:flex;align-items:center;justify-content:center;
+  html,body{margin:0;min-height:100%;background:#070A11}
+  body{display:flex;align-items:center;justify-content:center;padding:24px;
     font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
     color:#E9EFF9}
-  .wrap{display:flex;flex-direction:column;align-items:center;gap:22px;
+  .wrap{display:flex;flex-direction:column;align-items:center;gap:20px;max-width:340px;width:100%;
     opacity:0;transform:translateY(10px);animation:in .55s cubic-bezier(.2,.8,.2,1) forwards}
   @keyframes in{to{opacity:1;transform:none}}
-  .mark{width:132px;height:132px;border-radius:28px;object-fit:cover;
+  .mark{width:120px;height:120px;border-radius:28px;object-fit:cover;
     box-shadow:0 10px 40px rgba(91,147,232,.35),0 2px 10px rgba(0,0,0,.5);
     animation:pulse 1.8s ease-in-out infinite}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
   .tag{text-align:center}
-  .tag b{display:block;font-size:15px;font-weight:800;letter-spacing:.02em}
-  .tag span{display:block;margin-top:5px;font-size:11.5px;color:#9AA9C0;letter-spacing:.06em}
-  .bar{width:120px;height:3px;border-radius:99px;background:#1a2333;overflow:hidden}
-  .bar i{display:block;height:100%;width:40%;border-radius:99px;
-    background:linear-gradient(100deg,#5B93E8,#F2606F);
-    animation:load 1s cubic-bezier(.4,0,.2,1) infinite}
-  @keyframes load{0%{transform:translateX(-120%)}100%{transform:translateX(320%)}}
-  .fadeout{animation:out .28s ease forwards!important}
-  @keyframes out{to{opacity:0;transform:translateY(-6px)}}
+  .tag b{display:block;font-size:16px;font-weight:800;letter-spacing:.02em}
+  .tag span{display:block;margin-top:6px;font-size:11.5px;color:#9AA9C0;letter-spacing:.06em}
+
+  .howto{margin-top:6px;width:100%;background:#111826;border:1px solid #1E2A3F;border-radius:16px;padding:16px 18px;display:none}
+  .howto.show{display:block}
+  .howto b{display:block;font-size:13px;font-weight:800;margin-bottom:10px}
+  .step{display:flex;align-items:center;gap:10px;font-size:12.5px;color:#C7D2E3;line-height:1.5;margin-top:8px}
+  .step .n{flex:0 0 auto;width:20px;height:20px;border-radius:99px;background:#1E2A3F;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#9AA9C0}
+  .icon-inline{display:inline-flex;vertical-align:-4px;margin:0 2px}
+
+  .enter{margin-top:2px;width:100%;padding:14px;border-radius:14px;border:none;
+    background:linear-gradient(100deg,#5B93E8,#F2606F);color:#fff;font-weight:800;font-size:14px;display:none}
+  .enter.show{display:block}
+  .loading{display:none;align-items:center;gap:10px;color:#9AA9C0;font-size:12.5px}
+  .loading.show{display:flex}
+  .spin{width:14px;height:14px;border-radius:99px;border:2px solid #1E2A3F;border-top-color:#5B93E8;
+    animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -44,18 +54,34 @@
       <b>自分の成長を、確認しよう。</b>
       <span>JUNTENDO FOOTBALL PHYSICAL</span>
     </div>
-    <div class="bar"><i></i></div>
+
+    <div class="loading" id="loading"><span class="spin"></span>読み込み中…</div>
+
+    <div class="howto" id="howto">
+      <b>ホーム画面に追加する方法</b>
+      <div class="step"><span class="n">1</span>下（または上）の共有ボタン<span class="icon-inline">⬆️</span>をタップ</div>
+      <div class="step"><span class="n">2</span>「ホーム画面に追加」を選ぶ</div>
+      <div class="step"><span class="n">3</span>「追加」をタップ</div>
+    </div>
+    <button class="enter" id="enterBtn">今すぐ開く</button>
   </div>
 
 <script>
-/* ▼▼▼ ここだけ、選手に配っている本物のURLに書き換えてください ▼▼▼ */
 const DEST = 'https://script.google.com/a/macros/stud.juntendo.ac.jp/s/AKfycbzZONHw30t7djpexvscqgrBd6wo5E6IqfxQmy1vgiiAEc3iXfLD5kVJhc7XkQ6vuWFcCg/exec';
-/* ▲▲▲ ここだけ書き換えてください ▲▲▲ */
+// ホーム画面のアイコンから開かれた時（standalone）だけ自動で本体へ。
+// Safariで直接開いた時は、共有→ホーム画面に追加を落ち着いてできるようこの画面に留まる。
+const isStandalone = window.navigator.standalone === true ||
+  (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
 
-setTimeout(function(){
-  document.getElementById('wrap').classList.add('fadeout');
-  setTimeout(function(){ location.replace(DEST); }, 260);
-}, 550);
+if (isStandalone) {
+  document.getElementById('loading').classList.add('show');
+  setTimeout(function(){ location.replace(DEST); }, 350);
+} else {
+  document.getElementById('howto').classList.add('show');
+  const btn = document.getElementById('enterBtn');
+  btn.classList.add('show');
+  btn.onclick = function(){ location.href = DEST; };
+}
 </script>
 </body>
 </html>
