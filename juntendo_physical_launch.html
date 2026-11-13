@@ -14,8 +14,9 @@
 
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;min-height:100%;background:#070A11}
-  body{display:flex;align-items:center;justify-content:center;padding:24px;
+  html{height:100%;background:#070A11}
+  body{margin:0;min-height:100%;min-height:100dvh;background:#070A11;display:flex;align-items:center;justify-content:center;
+    padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));
     font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
     color:#E9EFF9}
   .wrap{display:flex;flex-direction:column;align-items:center;gap:20px;max-width:340px;width:100%;
@@ -40,6 +41,7 @@
     background:linear-gradient(100deg,#5B93E8,#F2606F);color:#fff;font-weight:800;font-size:14px;
     display:none;text-align:center;text-decoration:none}
   .enter.show{display:block}
+  .enter.alt{background:#111826;border:1px solid #1E2A3F;color:#C7D2E3;font-weight:700;font-size:13px;padding:12px}
   .hint{font-size:11px;color:#7C8AA0;text-align:center;line-height:1.6;display:none}
   .hint.show{display:block}
 </style>
@@ -61,7 +63,8 @@
 
     <!-- 実際にタップされたリンクとして開く。JSでの自動移動よりSafariへ逃げやすい -->
     <a class="enter" id="enterBtn" href="https://script.google.com/a/macros/stud.juntendo.ac.jp/s/AKfycbzZONHw30t7djpexvscqgrBd6wo5E6IqfxQmy1vgiiAEc3iXfLD5kVJhc7XkQ6vuWFcCg/exec" target="_blank" rel="noopener">開く</a>
-    <div class="hint" id="hint">タップしてもうまく開かない場合は、この画面を一度閉じて、Safariで直接開いてみてください。</div>
+    <a class="enter alt" id="altBtn" href="https://script.google.com/a/macros/stud.juntendo.ac.jp/s/AKfycbzZONHw30t7djpexvscqgrBd6wo5E6IqfxQmy1vgiiAEc3iXfLD5kVJhc7XkQ6vuWFcCg/exec" target="_blank" rel="noopener">Safariが開かない場合はこちら</a>
+    <div class="hint" id="hint">「開く」でSafariに切り替わります。開かない時は下のボタンから。</div>
   </div>
 
 <script>
@@ -70,10 +73,19 @@ const isStandalone = window.navigator.standalone === true ||
   (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
 
 if (isStandalone) {
-  // 自動遷移はしない（Google側のログインがWebView内で弾かれるため）。
-  // 必ず「ユーザーが指でタップしたリンク」として開かせ、Safariへ逃がすことを狙う。
-  document.getElementById('enterBtn').classList.add('show');
+  // ホーム画面から開いた時：アプリ内ブラウザ（白いバーが出る）ではなく Safari本体で開く。
+  // iOSは x-safari-https:// で Safari本体にURLを渡せる。使えない端末のために、
+  // 1.5秒たってもこの画面が表示されたままなら予備ボタン（通常リンク）を出す。
+  const btn = document.getElementById('enterBtn');
+  btn.href = DEST.replace(/^https:\/\//, 'x-safari-https://');
+  btn.removeAttribute('target');
+  btn.classList.add('show');
   document.getElementById('hint').classList.add('show');
+  btn.onclick = function(){
+    setTimeout(function(){
+      if (document.visibilityState === 'visible') document.getElementById('altBtn').classList.add('show');
+    }, 1500);
+  };
 } else {
   document.getElementById('howto').classList.add('show');
   document.getElementById('enterBtn').classList.add('show');
